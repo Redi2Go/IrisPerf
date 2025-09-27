@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "irisperf",
+  "version": "${version}",
+  "name": "IrisPerf",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "AGPL-3.0",
+  "icon": "assets/irisperf/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-datagen": [
+      "at.redi.irisperf.client.IrisperfDataGenerator"
+    ],
+    "client": [
+      "at.redi.irisperf.client.IrisperfClient"
+    ],
+    "main": [
+      "at.redi.irisperf.Irisperf"
+    ]
+  },
+  "mixins": [
+    "irisperf.mixins.json",
+    {
+      "config": "irisperf.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}"
+  }
+}
