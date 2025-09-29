@@ -29,6 +29,10 @@ public class TraceTransformer {
     );
 
     public static void transform(ShaderProfile shaderProfile, ASTParser parser, Root root, TranslationUnit translationUnit) {
+        translationUnit.getChildren().add(0, parser.parseExternalDeclaration(root,
+                "bool irisPerf_sample = ivec2(gl_FragCoord.xy) == ivec2(427, 240);"
+        ));
+
         List<FunctionDefinition> functions = translationUnit
                 .getChildren()
                 .stream()
@@ -60,7 +64,7 @@ public class TraceTransformer {
                 }
             }, function);
 
-            String writeStatement = "irisPerf_trace_array[" + functionIndex + "] += int(min(clockARB() - irisPerf_begin, 1 << 24));";
+            String writeStatement = "if (irisPerf_sample) irisPerf_trace_array[" + functionIndex + "] += int(clockARB() - irisPerf_begin);";
 
             for (ReturnStatement returnStatement : returnStatements) {
                 CompoundStatement compoundStatement = new CompoundStatement(Stream.empty());

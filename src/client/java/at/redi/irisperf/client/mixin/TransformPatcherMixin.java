@@ -4,6 +4,7 @@ import at.redi.irisperf.client.IrisperfClient;
 import at.redi.irisperf.client.ShaderProfile;
 import at.redi.irisperf.client.TraceTransformer;
 import io.github.douira.glsl_transformer.ast.node.TranslationUnit;
+import io.github.douira.glsl_transformer.ast.print.ASTPrinter;
 import io.github.douira.glsl_transformer.ast.query.Root;
 import io.github.douira.glsl_transformer.ast.transform.ASTParser;
 import net.irisshaders.iris.pipeline.transform.PatchShaderType;
@@ -28,9 +29,7 @@ public class TransformPatcherMixin {
         ShaderProfile shaderProfile = new ShaderProfile();
         TraceTransformer.transform(shaderProfile, t, root, tree);
 
-//        if (parameters.name.equals("deferred")) {
-//            System.out.println(ASTPrinter.printIndentedAnnotated(tree));
-//        }
+//        System.out.println(parameters.name + "\n" + ASTPrinter.printIndentedAnnotated(tree));
 
         IrisperfClient.shaderProfiles.put(parameters.name + ".fsh", shaderProfile);
     }

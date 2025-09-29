@@ -4,11 +4,9 @@ import at.redi.irisperf.client.IrisperfClient;
 import at.redi.irisperf.client.ShaderProfile;
 import at.redi.irisperf.client.buffer.GlMemoryManager;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.mojang.authlib.minecraft.client.MinecraftClient;
-import net.irisshaders.iris.gl.program.Program;
 import net.irisshaders.iris.pipeline.CompositeRenderer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL31;
 import org.lwjgl.opengl.GL42;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.IntBuffer;
 import java.util.*;
-import java.util.stream.IntStream;
 
 @Mixin(value = CompositeRenderer.class, remap = false)
 public class CompositeRendererMixin {
@@ -35,21 +32,22 @@ public class CompositeRendererMixin {
 
     @Redirect(
             method = "renderAll",
-            at = @At(value = "INVOKE", target = "Lnet/irisshaders/iris/gl/GLDebug;pushGroup(ILjava/lang/String;)V")
+            at = @At(value = "INVOKE", target = "Lnet/irisshaders/iris/gl/GLDebug;pushGroup(ILjava/lang/String;)V", ordinal = 1)
     )
     public void renderAllPushGroup(int id, String name) {
         passName = name;
     }
 
-    @Redirect(
+    @Inject(
             method = "renderAll",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/irisshaders/iris/gl/program/Program;use()V"
+                    target = "Lnet/irisshaders/iris/gl/program/Program;use()V",
+                    shift = At.Shift.AFTER
             )
     )
-    public void use(Program instance, @Local(ordinal = 0) int i) {
-        instance.use();
+    public void use(CallbackInfo ci, @Local(ordinal = 0) int i) {
+        int programId = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 
         shaderProfile = IrisperfClient.shaderProfiles.get(passName + ".fsh");
         if (shaderProfile == null)
@@ -60,7 +58,7 @@ public class CompositeRendererMixin {
 
             GlMemoryManager glMemoryManager = IrisperfClient.traceMemoryManager;
 
-            int blockIndex = glMemoryManager.findInProgram(instance.getProgramId());
+            int blockIndex = glMemoryManager.findInProgram(programId);
             if (blockIndex == GL31.GL_INVALID_INDEX)
                 return;
 
@@ -69,13 +67,13 @@ public class CompositeRendererMixin {
 
         int bindingPointIndex = 0;
         for (Map.Entry<Integer, GlMemoryManager> glMemoryManager : foundGlMemories) {
-            glMemoryManager.getValue().bind(instance.getProgramId(), glMemoryManager.getKey(), bindingPointIndex++);
+            glMemoryManager.getValue().bind(programId, glMemoryManager.getKey(), bindingPointIndex++);
         }
     }
 
     @Inject(
             method = "renderAll",
-            at = @At(value = "INVOKE", target = "Lnet/irisshaders/iris/gl/GLDebug;pushGroup(ILjava/lang/String;)V")
+            at = @At(value = "INVOKE", target = "Lnet/irisshaders/iris/gl/GLDebug;popGroup()V", ordinal = 1)
     )
     public void renderAllPushGroup(CallbackInfo ci) {
         if (shaderProfile == null)
@@ -87,30 +85,15 @@ public class CompositeRendererMixin {
             IntBuffer traceBuffer = byteBuffer.asIntBuffer();
 
             for (int i = 0; i < shaderProfile.functionCount; i++) {
-                shaderProfile.functionTime[i] += Math.max(traceBuffer.get(i), 0);
+                int value = traceBuffer.get(i);
                 traceBuffer.put(i, 0);
+
+                if (value < 0)
+                    continue;
+
+                shaderProfile.functionTime[i] = value;
             }
-            shaderProfile.sampleCount++;
         });
-
-        if (!(passName + ".fsh").equals(IrisperfClient.selectedProfileShader))
-            return;
-
-        IrisperfClient.selectedProfileShader = "";
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("Pass " + passName + ": " + "\n");
-
-        SortedMap<Long, String> map = new TreeMap<>();
-        for (int i = 0; i < shaderProfile.functionCount; i++)
-            map.put(shaderProfile.functionTime[i] / shaderProfile.sampleCount, shaderProfile.functionNames[i]);
-
-        for (Map.Entry<Long, String> entry : map.entrySet())
-            builder.append(entry.getValue() + ": \n" + entry.getKey() + "\n");
-
-        shaderProfile.reset();
-
-        System.out.println(builder);
     }
 
 }

@@ -6,12 +6,10 @@ public class ShaderProfile {
     private static final int MAX_FUNCTION_COUNT = 256;
 
     public int functionCount = 0;
-    public int sampleCount = 0;
     public final String[] functionNames = new String[MAX_FUNCTION_COUNT];
     public final long[] functionTime = new long[MAX_FUNCTION_COUNT];
 
     public void reset() {
-        sampleCount = 0;
         Arrays.fill(functionTime, 0);
     }
 }

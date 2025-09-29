@@ -4,3 +4,6 @@
 /build/classes/java/client/
 /build/classes/java/main/
 /out/
+/.idea/
+/run/
+/gradle/
