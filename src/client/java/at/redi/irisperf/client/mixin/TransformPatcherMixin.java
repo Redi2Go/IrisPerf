@@ -28,6 +28,7 @@ public class TransformPatcherMixin {
 
         ShaderProfile shaderProfile = new ShaderProfile();
         TraceTransformer.transform(shaderProfile, t, root, tree);
+        shaderProfile.patchedShader = ASTPrinter.printIndentedAnnotated(tree);
 
 //        System.out.println(parameters.name + "\n" + ASTPrinter.printIndentedAnnotated(tree));
 

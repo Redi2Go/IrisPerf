@@ -37,17 +37,19 @@ public class IrisperfClient implements ClientModInitializer {
 
                     StringBuilder builder = new StringBuilder();
 
-                    List<Map.Entry<Double, String>> passes = new ArrayList<>();
+                    List<Map.Entry<Long, String>> passes = new ArrayList<>();
 
                     for (Map.Entry<String, ShaderProfile> entry : shaderProfiles.entrySet()) {
-                        double runtime = Arrays.stream(entry.getValue().functionTime, 0, entry.getValue().functionCount).max().orElse(0);
+                        long runtime = Arrays.stream(entry.getValue().getAverageTiming()).max().orElse(0);
                         passes.add(Map.entry(runtime, entry.getKey()));
+
+                        entry.getValue().reset();
                     }
 
-                    passes.sort(Comparator.comparingDouble(Map.Entry::getKey));
+                    passes.sort(Comparator.comparingLong(Map.Entry::getKey));
 
-                    for (Map.Entry<Double, String> entry : passes)
-                        builder.append("Pass " + entry.getValue() + ": " + entry.getKey() + "\n");
+                    for (Map.Entry<Long, String> entry : passes)
+                        builder.append("Pass " + entry.getValue() + ": " + String.format("%,d", entry.getKey()) + "\n");
 
                     System.out.println(builder);
                     context.getSource().sendFeedback(Component.literal(builder.toString()));
@@ -71,13 +73,16 @@ public class IrisperfClient implements ClientModInitializer {
 
                     List<Map.Entry<Long, String>> functions = new ArrayList<>();
 
-                    for (int i = 0; i < shaderProfile.functionCount; i++)
-                        functions.add(Map.entry(shaderProfile.functionTime[i], shaderProfile.functionNames[i]));
+                    long[] averageTiming = shaderProfile.getAverageTiming();
+                    for (int i = 0; i < averageTiming.length; i++)
+                        functions.add(Map.entry(averageTiming[i], shaderProfile.functionNames[i]));
 
-                    functions.sort(Comparator.comparingDouble(Map.Entry::getKey));
+                    shaderProfile.reset();
+
+                    functions.sort(Comparator.comparingLong(Map.Entry::getKey));
 
                     for (Map.Entry<Long, String> entry : functions)
-                        builder.append(entry.getValue() + ": \n" + entry.getKey() + "\n\n");
+                        builder.append(entry.getValue() + ": \n" + String.format("%,d", entry.getKey()) + "\n\n");
 
                     System.out.println(builder);
                     context.getSource().sendFeedback(Component.literal(builder.toString()));
@@ -85,6 +90,23 @@ public class IrisperfClient implements ClientModInitializer {
                     return 0;
                 })
             ));
+        });
+
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            dispatcher.register(
+                ClientCommandManager
+                    .literal("perf_source")
+                    .then(ClientCommandManager.argument("shader", StringArgumentType.string())
+                        .executes(context -> {
+                            String passName = StringArgumentType.getString(context, "shader");
+                            ShaderProfile shaderProfile = shaderProfiles.get(passName);
+
+                            System.out.println(shaderProfile.patchedShader);
+                            context.getSource().sendFeedback(Component.literal("Printed patched shader source to stdout"));
+
+                            return 0;
+                        })
+                    ));
         });
     }
 }

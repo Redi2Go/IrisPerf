@@ -65,7 +65,7 @@ public class CompositeRendererMixin {
             foundGlMemories.add(Map.entry(blockIndex, glMemoryManager));
         }
 
-        int bindingPointIndex = 0;
+        int bindingPointIndex = 64;
         for (Map.Entry<Integer, GlMemoryManager> glMemoryManager : foundGlMemories) {
             glMemoryManager.getValue().bind(programId, glMemoryManager.getKey(), bindingPointIndex++);
         }
@@ -91,7 +91,8 @@ public class CompositeRendererMixin {
                 if (value < 0)
                     continue;
 
-                shaderProfile.functionTime[i] = value;
+                shaderProfile.functionTime[i] += value;
+                shaderProfile.functionSamples[i]++;
             }
         });
     }

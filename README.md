@@ -8,6 +8,7 @@ to profile function execution times of all functions inside a shader
 ## Usage
 - ``/perf_list``: Lists all¹ shader passes with the function timing of ``main()``
 - ``/perf <shader>``: List the execution time of each function in the shader pass
+- ``/perf_source``: Print the patched shader source to stdout
 
 ## How it works
 

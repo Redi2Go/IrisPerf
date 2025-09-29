@@ -10,9 +10,6 @@
   "icon": "assets/irisperf/icon.png",
   "environment": "client",
   "entrypoints": {
-    "fabric-datagen": [
-      "at.redi.irisperf.client.IrisperfDataGenerator"
-    ],
     "client": [
       "at.redi.irisperf.client.IrisperfClient"
     ],
