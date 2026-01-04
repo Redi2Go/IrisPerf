@@ -5,7 +5,9 @@
   "name": "IrisPerf",
   "description": "",
   "authors": [],
-  "contact": {},
+  "contact": {
+    "sources": "https://github.com/Redi2Go/IrisPerf"
+  },
   "license": "AGPL-3.0",
   "icon": "assets/irisperf/icon.png",
   "environment": "client",

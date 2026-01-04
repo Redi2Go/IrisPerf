@@ -22,14 +22,15 @@ public class IrisperfClient implements ClientModInitializer {
     public void onInitializeClient() {
         traceMemoryManager = new GlMemoryManager("irisPerf_trace_block", 1 << 12, false);
         traceMemoryOwner = new SimpleMemoryOwner(traceMemoryManager, traceMemoryManager.getCapacity());
+
         IntBuffer traceBuffer = traceMemoryOwner.getMemory().getBuffer().asIntBuffer();
         for (int i = 0; i < traceBuffer.capacity(); i++)
             traceBuffer.put(0);
         traceMemoryManager.queueUpload(traceMemoryOwner);
 
-        RenderSystem.recordRenderCall(() -> {
-            traceMemoryManager.upload();
-        });
+//        RenderSystem.queueFencedTask(() -> {
+//            traceMemoryManager.upload();
+//        });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(

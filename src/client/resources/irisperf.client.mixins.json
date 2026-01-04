@@ -13,7 +13,9 @@
   },
   "mixins": [
     "CompositeRendererMixin",
+    "DefaultChunkRendererMixin",
     "IrisMixin",
+    "SodiumProgramsMixin",
     "TransformPatcherMixin"
   ]
 }

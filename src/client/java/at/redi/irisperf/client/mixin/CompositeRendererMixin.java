@@ -5,6 +5,8 @@ import at.redi.irisperf.client.ShaderProfile;
 import at.redi.irisperf.client.buffer.GlMemoryManager;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.irisshaders.iris.pipeline.CompositeRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL31;
@@ -46,7 +48,7 @@ public class CompositeRendererMixin {
                     shift = At.Shift.AFTER
             )
     )
-    public void use(CallbackInfo ci, @Local(ordinal = 0) int i) {
+    public void use(CallbackInfo ci) {
         int programId = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 
         shaderProfile = IrisperfClient.shaderProfiles.get(passName + ".fsh");
